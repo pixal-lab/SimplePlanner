@@ -1,13 +1,4 @@
-# Personal Planner
-
-Minimalist mobile-first task manager.
-
-## How to Run
-This application uses modern ES Modules.
-- **GitHub Pages**: Works out of the box.
-- **Locally**: You must use a local server because browsers block modules on `file://`.
-  - **Option 1**: Double click `start_server.bat` (requires Python).
-  - **Option 2**: In VS Code, right-click `index.html` -> "Open with Live Server".
+# Minimalist Planner App
 
 A lightweight, mobile-first task manager with local persistence and automation. Designed to replace simple `.txt` to-do lists.
 
