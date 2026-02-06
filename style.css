@@ -1,0 +1,501 @@
+:root {
+    --bg-color: #ffffff;
+    --bg-header: rgba(255, 255, 255, 0.96);
+    /* Translucent backdrop */
+    --text-primary: #111111;
+    --text-secondary: #666666;
+    --accent: #222222;
+    --accent-inverse: #ffffff;
+    --border-light: #f0f0f0;
+    --input-bg: transparent;
+    --btn-bg: #f5f5f5;
+    --btn-text: #666666;
+    --btn-active-bg: #111111;
+    --btn-active-text: #ffffff;
+
+    --spacing-xs: 0.25rem;
+    /* 4px */
+    --spacing-sm: 0.75rem;
+    /* 12px */
+    --spacing-md: 1.5rem;
+    /* 24px */
+    --spacing-lg: 3rem;
+    /* 48px */
+
+    --font-stack: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Dark Mode Theme */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --bg-header: rgba(18, 18, 18, 0.96);
+    --text-primary: #eaeaea;
+    --text-secondary: #888888;
+    --accent: #ffffff;
+    --accent-inverse: #000000;
+    --border-light: #2a2a2a;
+    --input-bg: #1e1e1e;
+    --btn-bg: #2a2a2a;
+    --btn-text: #999999;
+    --btn-active-bg: #ffffff;
+    --btn-active-text: #000000;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-stack);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    padding-bottom: 6rem;
+    /* More breathe space at bottom */
+}
+
+/* Custom Scrollbar for sleek look */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.app-header {
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 8px;
+    border-radius: 50%;
+    color: var(--text-primary);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background-color: var(--btn-bg);
+    opacity: 1;
+}
+
+h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0;
+}
+
+.date-display {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Input Section - Sticky */
+.input-section {
+    position: sticky;
+    top: 0;
+    background: var(--bg-header);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+    padding: var(--spacing-sm) 0 var(--spacing-md);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease;
+    margin-bottom: var(--spacing-md);
+}
+
+.input-section.scrolled {
+    border-color: var(--border-light);
+    box-shadow: var(--shadow-soft);
+}
+
+.add-task-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    /* Safe area for mobile padding */
+    padding: 0 var(--spacing-md);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#taskInput {
+    width: 100%;
+    padding: 16px 0;
+    font-size: 1.15rem;
+    border: none;
+    border-bottom: 2px solid var(--border-light);
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    color: var(--text-primary);
+    transition: border-color 0.2s ease;
+    border-radius: 0;
+    /* Removing iOS defaults */
+}
+
+#taskInput::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+#taskInput:focus {
+    border-color: var(--accent);
+}
+
+.date-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.date-selector::-webkit-scrollbar {
+    display: none;
+}
+
+.date-btn {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid transparent;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.date-btn:hover {
+    filter: brightness(0.95);
+}
+
+.date-btn.active {
+    background: var(--btn-active-bg);
+    color: var(--btn-active-text);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hidden-date-picker {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+/* Task Groups */
+.task-group {
+    margin-bottom: var(--spacing-lg);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.task-group h2 {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.task-list {
+    list-style: none;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-light);
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.task-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: flex-start;
+    /* Align top for multiline tasks */
+    min-width: 0;
+    gap: var(--spacing-sm);
+}
+
+/* Checkbox styling */
+.task-checkbox-wrapper {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-top: 3px;
+    /* Align with text baseline */
+}
+
+.task-checkbox {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.custom-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--text-secondary);
+    /* Softer border than black */
+    border-radius: 6px;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.task-checkbox:checked+.custom-checkbox {
+    background-color: var(--text-primary);
+    border-color: var(--text-primary);
+    transform: scale(1.05);
+    /* Slight bounce */
+}
+
+.custom-checkbox::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--bg-color);
+    /* Matches bg, acts as cutout */
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.task-checkbox:checked+.custom-checkbox::after {
+    opacity: 1;
+}
+
+.task-text {
+    flex-grow: 1;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    transition: color 0.3s ease;
+    word-break: break-word;
+    /* Prevent overflow */
+}
+
+/* Completed State */
+.task-item.completed .task-text {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.task-item.completed .custom-checkbox {
+    border-color: var(--border-light);
+    background-color: var(--border-light);
+}
+
+.task-item.completed .custom-checkbox::after {
+    border-color: var(--text-secondary);
+}
+
+/* Move Button */
+.reschedule-btn {
+    opacity: 0;
+    transform: translateX(-10px);
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    padding: 8px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.task-item:hover .reschedule-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+@media (hover: none) {
+    .reschedule-btn {
+        opacity: 0.4;
+        transform: none;
+    }
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutSlide {
+    to {
+        opacity: 0;
+        transform: translateX(30px);
+        height: 0;
+        padding: 0;
+        margin: 0;
+        border: 0;
+    }
+}
+
+.task-item.removing {
+    animation: fadeOutSlide 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+    pointer-events: none;
+}
+
+/* Link Buttons */
+.link-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    opacity: 1;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(2px);
+}
+
+.modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    width: 100%;
+    max-width: 500px;
+    border-radius: 16px;
+    padding: var(--spacing-md);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    transform: scale(1);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal.hidden .modal-content {
+    transform: scale(0.95);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.recurring-list {
+    list-style: none;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.recurring-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.recurring-item:last-child {
+    border-bottom: none;
+}
+
+.rule-badge {
+    background: var(--btn-bg);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.delete-rule-btn {
+    color: var(--danger, #ff4444);
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 4px 8px;
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="Minimalist personal task manager">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="header-top">
+            <h1>Mis Tareas</h1>
+            <button id="themeToggle" class="icon-btn" aria-label="Toggle Dark Mode">🌓</button>
+        </div>
+        <div class="date-display" id="currentDate"></div>
+    </header>
+
+    <main class="app-container">
+        <!-- Input Section -->
+        <section class="input-section">
+            <form id="addTaskForm" class="add-task-form">
+                <input type="text" id="taskInput" placeholder="Nueva tarea..." autocomplete="off" required>
+                <div class="date-selector">
+                    <button type="button" class="date-btn active" data-date="asap">ASAP</button>
+                    <button type="button" class="date-btn" data-date="today">Hoy</button>
+                    <button type="button" class="date-btn" data-date="tomorrow">Mañana</button>
+                    <button type="button" class="date-btn" id="customDateBtn">📅</button>
+                    <input type="date" id="datePicker" class="hidden-date-picker">
+                </div>
+            </form>
+        </section>
+
+        <!-- Tasks Lists -->
+        <div id="taskLists">
+            <!-- ASAP Section -->
+            <section class="task-group" id="asapSection">
+                <h2>Pendientes ASAP</h2>
+                <ul class="task-list" id="asapList"></ul>
+            </section>
+
+            <!-- Dynamic Days will be injected here -->
+            <div id="scheduledContainer"></div>
+        </div>
+
+        <!-- Recurrence Footer -->
+        <div style="text-align: center; margin-top: 3rem; margin-bottom: 2rem;">
+            <button id="manageRecurringBtn" class="link-btn">↻ Gestionar Recurrentes</button>
+        </div>
+    </main>
+
+    <!-- Modal for Recurring Rules -->
+    <div id="recurringModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tareas Recurrentes</h3>
+                <button id="closeModalBtn" class="icon-btn">✕</button>
+            </div>
+            <ul id="recurringList" class="recurring-list">
+                <!-- Injected via JS -->
+            </ul>
+            <p class="empty-state-text" id="noRecurringText">No tienes tareas recurrentes activas.</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
