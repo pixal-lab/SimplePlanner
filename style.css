@@ -499,3 +499,31 @@ h1 {
     cursor: pointer;
     padding: 4px 8px;
 }
+
+/* Drag and Drop */
+.drag-handle {
+    cursor: grab;
+    padding: 8px;
+    margin-right: 4px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    font-size: 1.2rem;
+    line-height: 1;
+    user-select: none;
+    touch-action: none;
+}
+
+.drag-handle:hover {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+.task-item.dragging {
+    opacity: 0.4;
+    background: var(--btn-bg);
+    border: 1px dashed var(--text-secondary);
+}
+
+.task-item[draggable="true"] {
+    cursor: grab;
+}

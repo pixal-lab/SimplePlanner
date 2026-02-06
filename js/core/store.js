@@ -188,6 +188,25 @@ class Store {
         // Add to new (this triggers notify)
         this.addScheduled(task.text, targetDateStr, false);
     }
+
+    reorderTask(listType, dateStr, fromIndex, toIndex) {
+        let list = null;
+        if (listType === 'asap') {
+            list = this.data.asap;
+        } else if (listType === 'scheduled' && dateStr) {
+            list = this.data.scheduled[dateStr];
+        }
+
+        if (!list || fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) {
+            return;
+        }
+
+        const [movedItem] = list.splice(fromIndex, 1);
+        list.splice(toIndex, 0, movedItem);
+
+        this.save();
+        this.notify();
+    }
 }
 
 export const store = new Store();

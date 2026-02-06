@@ -57,9 +57,14 @@ export const UI = {
         list.innerHTML = '';
 
         const tasks = store.data.asap;
-        tasks.forEach(task => {
-            list.appendChild(this.createTaskEl(task, 'asap', null));
-        });
+        if (tasks.length === 0) {
+            list.innerHTML = '<li style="color:var(--text-secondary); padding:10px 0; font-size:0.9rem; font-style:italic;">No hay pendientes urgentes</li>';
+        } else {
+            tasks.forEach((task, index) => {
+                list.appendChild(this.createTaskEl(task, 'asap', null, index));
+            });
+            this.addDropZoneListeners(list, 'asap', null);
+        }
 
         const section = document.getElementById('asapSection');
         section.style.display = 'block';
@@ -99,24 +104,89 @@ export const UI = {
             if (tasks.length === 0) {
                 ul.innerHTML = '<li style="color:var(--text-secondary); padding:5px 0; font-size:0.8rem;">Sin tareas</li>';
             } else {
-                tasks.forEach(task => {
-                    ul.appendChild(this.createTaskEl(task, 'scheduled', dateStr));
-                });
+                if (tasks.length === 0) {
+                    ul.innerHTML = '<li style="color:var(--text-secondary); padding:5px 0; font-size:0.8rem;">Sin tareas</li>';
+                } else {
+                    tasks.forEach((task, index) => {
+                        ul.appendChild(this.createTaskEl(task, 'scheduled', dateStr, index));
+                    });
+                }
             }
 
             section.appendChild(ul);
             container.appendChild(section);
+
+            // Add drop listeners
+            this.addDropZoneListeners(ul, 'scheduled', dateStr);
         });
     },
 
-    createTaskEl(task, listType, dateStr) {
+    addDropZoneListeners(listEl, listType, dateStr) {
+        listEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = this.getDragAfterElement(listEl, e.clientY);
+            const draggable = document.querySelector('.dragging');
+            if (draggable) {
+                if (afterElement == null) {
+                    listEl.appendChild(draggable);
+                } else {
+                    listEl.insertBefore(draggable, afterElement);
+                }
+            }
+        });
+
+        listEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            if (!draggable) return;
+
+            // Get new index
+            const newIndex = Array.from(listEl.children).indexOf(draggable);
+            const oldIndex = parseInt(draggable.dataset.index);
+            const sourceListType = draggable.dataset.listType;
+            const sourceDateStr = draggable.dataset.dateStr;
+
+            // Only allow same list reordering for now
+            if (sourceListType === listType && sourceDateStr === (dateStr || 'null')) {
+                if (newIndex !== oldIndex) {
+                    store.reorderTask(listType, dateStr, oldIndex, newIndex);
+                }
+            } else {
+                // Revert visual change if dropped in wrong list (Store render will fix it, but good to be explicit)
+                this.renderAll();
+            }
+        });
+    },
+
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    },
+
+    createTaskEl(task, listType, dateStr, index) {
         const li = document.createElement('li');
         li.className = 'task-item';
         if (task.completed) li.classList.add('completed');
 
+        // Drag attributes
+        li.draggable = true;
+        li.dataset.index = index;
+        li.dataset.listType = listType;
+        li.dataset.dateStr = dateStr || 'null';
+
         const id = `checkbox-${task.id}`;
 
         li.innerHTML = `
+            <div class="drag-handle" title="Arrastrar para reordenar">≡ </div>
             <div class="task-content-wrapper">
                 <div class="task-checkbox-wrapper">
                     <input type="checkbox" id="${id}" class="task-checkbox" ${task.completed ? 'checked' : ''}>
@@ -129,6 +199,17 @@ export const UI = {
                 <button class="icon-btn reschedule-btn move-tomorrow-btn" title="Mover a Mañana">➡️</button>
             </div>
         `;
+
+        // Drag Listeners
+        li.addEventListener('dragstart', (e) => {
+            li.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            // Optional: set ghost image
+        });
+
+        li.addEventListener('dragend', () => {
+            li.classList.remove('dragging');
+        });
 
         // Checkbox listener
         const checkbox = li.querySelector('.task-checkbox');
