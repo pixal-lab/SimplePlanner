@@ -211,9 +211,9 @@ export const UI = {
             li.classList.remove('dragging');
         });
 
-        // Touch Listeners for Mobile
+        // Touch/Pointer Listeners for Mobile
         const handle = li.querySelector('.drag-handle');
-        this.addTouchListeners(li, handle, listType, dateStr, index);
+        this.addPointerListeners(handle, li, listType, dateStr, index);
 
         // Checkbox listener
         const checkbox = li.querySelector('.task-checkbox');
