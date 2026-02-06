@@ -510,8 +510,13 @@ h1 {
     font-size: 1.2rem;
     line-height: 1;
     user-select: none;
+    -webkit-user-select: none;
     touch-action: none;
-    /* Required for Pointer Events */
+    /* Critical for Pointer Events */
+}
+
+.drag-handle:active {
+    cursor: grabbing;
 }
 
 .drag-handle:hover {
@@ -520,11 +525,27 @@ h1 {
 }
 
 .task-item.dragging {
-    opacity: 0.4;
+    opacity: 0.3;
     background: var(--btn-bg);
-    border: 1px dashed var(--text-secondary);
 }
 
-.task-item[draggable="true"] {
-    cursor: grab;
+.drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.95;
+    background: var(--bg-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    list-style: none;
+    width: var(--ghost-width);
+    height: var(--ghost-height);
+    display: flex;
+    /* Maintain layout */
+    align-items: center;
+    padding: 16px 0;
+    /* Match original padding */
+    transform: scale(1.02);
+    /* Slight pop */
 }

@@ -63,7 +63,7 @@ export const UI = {
             tasks.forEach((task, index) => {
                 list.appendChild(this.createTaskEl(task, 'asap', null, index));
             });
-            this.addDropZoneListeners(list, 'asap', null);
+            // Listeners handled inside createTaskEl now
         }
 
         const section = document.getElementById('asapSection');
@@ -116,46 +116,133 @@ export const UI = {
             section.appendChild(ul);
             container.appendChild(section);
 
-            // Add drop listeners
-            this.addDropZoneListeners(ul, 'scheduled', dateStr);
+            // Listeners handled per item now
         });
     },
 
-    addDropZoneListeners(listEl, listType, dateStr) {
-        listEl.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const afterElement = this.getDragAfterElement(listEl, e.clientY);
-            const draggable = document.querySelector('.dragging');
-            if (draggable) {
-                if (afterElement == null) {
-                    listEl.appendChild(draggable);
-                } else {
-                    listEl.insertBefore(draggable, afterElement);
-                }
-            }
+    setupDrag(handleEl, itemEl, listType, dateStr) {
+        handleEl.addEventListener('pointerdown', (e) => {
+            // Only left click or touch
+            if (e.button !== 0) return;
+
+            e.preventDefault(); // Prevent text selection/scrolling
+            e.stopPropagation();
+
+            handleEl.setPointerCapture(e.pointerId);
+            this.DragManager.start(e, itemEl, listType, dateStr);
         });
+    },
 
-        listEl.addEventListener('drop', (e) => {
+    DragManager: {
+        dragItem: null,
+        ghostEl: null,
+        listContainer: null,
+        initialIndex: null,
+        listType: null,
+        dateStr: null,
+        offsetY: 0,
+        offsetX: 0,
+        scrolling: false,
+
+        start(e, item, listType, dateStr) {
+            this.dragItem = item;
+            this.listContainer = item.parentNode;
+            this.listType = listType;
+            this.dateStr = dateStr;
+            this.initialIndex = Array.from(this.listContainer.children).indexOf(item);
+
+            // Calculate offset to grab point
+            const rect = item.getBoundingClientRect();
+            this.offsetY = e.clientY - rect.top;
+            this.offsetX = e.clientX - rect.left;
+
+            // Create Ghost
+            this.ghostEl = item.cloneNode(true);
+            this.ghostEl.classList.add('drag-ghost');
+            // Fix dimensions
+            this.ghostEl.style.width = `${rect.width}px`;
+            this.ghostEl.style.height = `${rect.height}px`;
+
+            // Set initial position
+            this.updateGhostPosition(e.clientX, e.clientY);
+
+            document.body.appendChild(this.ghostEl);
+            item.classList.add('dragging');
+
+            // Attach Global Listeners
+            this.onMove = this.onMove.bind(this);
+            this.onUp = this.onUp.bind(this);
+            window.addEventListener('pointermove', this.onMove, { passive: false });
+            window.addEventListener('pointerup', this.onUp);
+            window.addEventListener('pointercancel', this.onUp);
+        },
+
+        updateGhostPosition(x, y) {
+            if (this.ghostEl) {
+                this.ghostEl.style.top = `${y - this.offsetY}px`;
+                this.ghostEl.style.left = `${x - this.offsetX}px`;
+            }
+        },
+
+        onMove(e) {
             e.preventDefault();
-            const draggable = document.querySelector('.dragging');
-            if (!draggable) return;
+            if (!this.dragItem) return;
 
-            // Get new index
-            const newIndex = Array.from(listEl.children).indexOf(draggable);
-            const oldIndex = parseInt(draggable.dataset.index);
-            const sourceListType = draggable.dataset.listType;
-            const sourceDateStr = draggable.dataset.dateStr;
+            // Update Ghost
+            this.updateGhostPosition(e.clientX, e.clientY);
 
-            // Only allow same list reordering for now
-            if (sourceListType === listType && sourceDateStr === (dateStr || 'null')) {
-                if (newIndex !== oldIndex) {
-                    store.reorderTask(listType, dateStr, oldIndex, newIndex);
-                }
+            // Smart auto-scroll
+            this.handleScroll(e.clientY);
+
+            // Reordering logic
+            const container = this.listContainer;
+            const afterElement = UI.getDragAfterElement(container, e.clientY);
+
+            if (afterElement == null) {
+                container.appendChild(this.dragItem);
             } else {
-                // Revert visual change if dropped in wrong list (Store render will fix it, but good to be explicit)
-                this.renderAll();
+                if (afterElement !== this.dragItem) {
+                    container.insertBefore(this.dragItem, afterElement);
+                }
             }
-        });
+        },
+
+        onUp(e) {
+            if (!this.dragItem) return;
+
+            // Cleanup listeners
+            window.removeEventListener('pointermove', this.onMove);
+            window.removeEventListener('pointerup', this.onUp);
+            window.removeEventListener('pointercancel', this.onUp);
+
+            // Remove ghost
+            if (this.ghostEl) {
+                this.ghostEl.remove();
+                this.ghostEl = null;
+            }
+
+            this.dragItem.classList.remove('dragging');
+
+            // Commit changes
+            const newIndex = Array.from(this.listContainer.children).indexOf(this.dragItem);
+            if (newIndex !== this.initialIndex) {
+                store.reorderTask(this.listType, this.dateStr, this.initialIndex, newIndex);
+            }
+
+            this.dragItem = null;
+            this.listContainer = null;
+        },
+
+        handleScroll(y) {
+            // Basic edge scrolling
+            const threshold = 50;
+            const speed = 10;
+            if (y < threshold) {
+                window.scrollBy(0, -speed);
+            } else if (window.innerHeight - y < threshold) {
+                window.scrollBy(0, speed);
+            }
+        }
     },
 
     getDragAfterElement(container, y) {
@@ -177,16 +264,13 @@ export const UI = {
         li.className = 'task-item';
         if (task.completed) li.classList.add('completed');
 
-        // Drag attributes
-        li.draggable = true;
+        // Note: No draggable=true anymore
         li.dataset.index = index;
-        li.dataset.listType = listType;
-        li.dataset.dateStr = dateStr || 'null';
 
         const id = `checkbox-${task.id}`;
 
         li.innerHTML = `
-            <div class="drag-handle" title="Arrastrar para reordenar">≡ </div>
+            <div class="drag-handle" title="Arrastrar para reordenar" style="touch-action:none;">≡ </div>
             <div class="task-content-wrapper">
                 <div class="task-checkbox-wrapper">
                     <input type="checkbox" id="${id}" class="task-checkbox" ${task.completed ? 'checked' : ''}>
@@ -200,20 +284,9 @@ export const UI = {
             </div>
         `;
 
-        // Drag Listeners
-        li.addEventListener('dragstart', (e) => {
-            li.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            // Optional: set ghost image
-        });
-
-        li.addEventListener('dragend', () => {
-            li.classList.remove('dragging');
-        });
-
-        // Touch/Pointer Listeners for Mobile
+        // init Drag
         const handle = li.querySelector('.drag-handle');
-        this.addPointerListeners(handle, li, listType, dateStr, index);
+        this.setupDrag(handle, li, listType, dateStr);
 
         // Checkbox listener
         const checkbox = li.querySelector('.task-checkbox');
@@ -417,47 +490,6 @@ export const UI = {
             customBtn.textContent = date.toLocaleDateString('es-ES', options);
 
             document.getElementById('taskInput').focus();
-        });
-    },
-
-    addTouchListeners(li, handle, listType, dateStr, index) {
-        let touchStartY = 0;
-
-        handle.addEventListener('touchstart', (e) => {
-            // Prevent scrolling when touching the handle
-            e.preventDefault();
-            touchStartY = e.touches[0].clientY;
-            li.classList.add('dragging');
-            document.body.style.overflow = 'hidden'; // Lock screen scroll
-        }, { passive: false });
-
-        handle.addEventListener('touchmove', (e) => {
-            e.preventDefault(); // Prevent scroll
-            const touchY = e.touches[0].clientY;
-            const listEl = li.parentElement;
-
-            const afterElement = this.getDragAfterElement(listEl, touchY);
-            if (afterElement == null) {
-                listEl.appendChild(li);
-            } else {
-                listEl.insertBefore(li, afterElement);
-            }
-        }, { passive: false });
-
-        handle.addEventListener('touchend', (e) => {
-            li.classList.remove('dragging');
-            document.body.style.overflow = ''; // Restore scroll
-
-            const listEl = li.parentElement;
-            const newIndex = Array.from(listEl.children).indexOf(li);
-            const oldIndex = index; // This index is from closure, but might be stale if re-rendered? 
-            // Actually, `index` passed to createTaskEl is the original index.
-            // But if we reordered before, we might need current index? 
-            // Store re-renders everything on change, so `index` from closure is valid for the start of THIS drag.
-
-            if (newIndex !== oldIndex) {
-                store.reorderTask(listType, dateStr, oldIndex, newIndex);
-            }
         });
     }
 };
