@@ -511,6 +511,7 @@ h1 {
     line-height: 1;
     user-select: none;
     touch-action: none;
+    /* Required for Pointer Events */
 }
 
 .drag-handle:hover {
