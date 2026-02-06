@@ -211,6 +211,10 @@ export const UI = {
             li.classList.remove('dragging');
         });
 
+        // Touch Listeners for Mobile
+        const handle = li.querySelector('.drag-handle');
+        this.addTouchListeners(li, handle, listType, dateStr, index);
+
         // Checkbox listener
         const checkbox = li.querySelector('.task-checkbox');
         checkbox.addEventListener('change', (e) => {
@@ -413,6 +417,47 @@ export const UI = {
             customBtn.textContent = date.toLocaleDateString('es-ES', options);
 
             document.getElementById('taskInput').focus();
+        });
+    },
+
+    addTouchListeners(li, handle, listType, dateStr, index) {
+        let touchStartY = 0;
+
+        handle.addEventListener('touchstart', (e) => {
+            // Prevent scrolling when touching the handle
+            e.preventDefault();
+            touchStartY = e.touches[0].clientY;
+            li.classList.add('dragging');
+            document.body.style.overflow = 'hidden'; // Lock screen scroll
+        }, { passive: false });
+
+        handle.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scroll
+            const touchY = e.touches[0].clientY;
+            const listEl = li.parentElement;
+
+            const afterElement = this.getDragAfterElement(listEl, touchY);
+            if (afterElement == null) {
+                listEl.appendChild(li);
+            } else {
+                listEl.insertBefore(li, afterElement);
+            }
+        }, { passive: false });
+
+        handle.addEventListener('touchend', (e) => {
+            li.classList.remove('dragging');
+            document.body.style.overflow = ''; // Restore scroll
+
+            const listEl = li.parentElement;
+            const newIndex = Array.from(listEl.children).indexOf(li);
+            const oldIndex = index; // This index is from closure, but might be stale if re-rendered? 
+            // Actually, `index` passed to createTaskEl is the original index.
+            // But if we reordered before, we might need current index? 
+            // Store re-renders everything on change, so `index` from closure is valid for the start of THIS drag.
+
+            if (newIndex !== oldIndex) {
+                store.reorderTask(listType, dateStr, oldIndex, newIndex);
+            }
         });
     }
 };
